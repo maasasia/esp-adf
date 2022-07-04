@@ -301,9 +301,9 @@ esp_err_t i2s_stream_set_clk(audio_element_handle_t i2s_stream, int rate, int bi
     esp_err_t err = ESP_OK;
     i2s_stream_t *i2s = (i2s_stream_t *)audio_element_getdata(i2s_stream);
     audio_element_state_t state = audio_element_get_state(i2s_stream);
-    if (state == AEL_STATE_RUNNING) {
-        audio_element_pause(i2s_stream);
-    }
+    // if (state == AEL_STATE_RUNNING) {
+    //     audio_element_pause(i2s_stream);
+    // }
     audio_element_set_music_info(i2s_stream, rate, ch, bits);
 
     if (_i2s_set_clk(i2s->config.i2s_port, rate, bits, ch) == ESP_FAIL) {
@@ -390,7 +390,7 @@ audio_element_handle_t i2s_stream_init(i2s_stream_cfg_t *config)
                                  config->i2s_config.bits_per_sample);
 #if SOC_I2S_SUPPORTS_ADC_DAC
     if ((config->i2s_config.mode & I2S_MODE_DAC_BUILT_IN) != 0) {
-        i2s_set_dac_mode(I2S_DAC_CHANNEL_BOTH_EN);
+        i2s_set_dac_mode(I2S_DAC_CHANNEL_RIGHT_EN);
     } else
 #endif
     {

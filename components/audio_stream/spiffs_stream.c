@@ -92,7 +92,7 @@ static esp_err_t _spiffs_open(audio_element_handle_t self)
     audio_element_info_t info;
     char *uri = audio_element_get_uri(self);
     ESP_LOGD(TAG, "_spiffs_open,   %s", uri);
-    char *path = strstr(uri, "/spiffs");
+    char *path = uri;
     audio_element_getinfo(self, &info);
     if (path == NULL) {
         ESP_LOGE(TAG, "Need file path to open");

@@ -1,77 +1,63 @@
-# Espressif Audio Development Framework
+# Forked from espressif/esp-adf
+original document is here. https://github.com/espressif/esp-adf
 
-[![Documentation Status](https://readthedocs.com/projects/espressif-esp-adf/badge/?version=latest)](https://docs.espressif.com/projects/esp-adf/en/latest/?badge=latest)
+## Install guide
+1. Clone this repository
+```
+git clone --recursive git@github.com:maasasia/esp-adf.git
+```
+2. checkout to 2.4-modify version
+```
+git checkout v2.4-modify
+```
+3. Set the $ESP_ADF path
+```
+cd esp-adf
+export ADF_PATH=$PWD
+```
+4. Process submodule
+```
+git submodule update --init --recursive
+```
 
-Espressif Systems Audio Development Framework (ESP-ADF) is the official audio development framework for the [ESP32](https://espressif.com/en/products/hardware/esp32/overview), [ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2) and [ESP32-S3](https://www.espressif.com/en/products/socs/esp32-s3) SoCs.
+## Why?
 
-## Overview
+### 아래와 같은 작업이 필요한데 매번 하기 귀찮으니까 fork 떠서 만듦
 
-ESP-ADF supports development of audio applications for the Espressif Systems SoCs in the most comprehensive way. With ESP-ADF, you can easily add features, develop audio applications from simple to complex:
+1.
+esp-adf 를 사용하면, 아래의 에러를 만나게 될 것입니다.
 
-- Music player or recorder supports audio formats such as MP3, AAC, FLAC, WAV, OGG, OPUS, AMR, TS, EQ, Downmixer, Sonic, ALC, G.711 and etc.
-- Play music from sources: HTTP, HLS (HTTP Live Streaming), SPIFFS, SDCARD, A2DP-Source, A2DP-Sink, HFP and etc.
-- Integrate Media services such as: DLNA, VoIP and etc.
-- Internet Radio
-- Voice recognition and integration with online services such as Alexa, DuerOS and etc.
+In file included from /Users/yohannassouline/esp/esp-adf/components/bluetooth_service/hfp_stream.c:32: /Users/yohannassouline/esp/esp-adf/components/bluetooth_service/include/hfp_stream.h:36:10: fatal error: esp_hf_client_api.h: No such file or directory #include "esp_hf_client_api.h" ^~~~~~~~~~~~~~~~~~~~~ compilation terminated.
 
-As a general, the ESP-ADF features will be supported as shown below:
-
-<div align="center"><img src="docs/_static/adf_block_diagram.png" alt ="ADF Block Diagram" align="center" /></div>
-
-## Developing with the ESP-ADF
-
-### IDF Version
-
-The following table shows the ESP-IDF versions supported by ESP-ADF at the current time. The lable ![alt text](docs/_static/yes-checkm.png "supported") means supported, and the lable ![alt text](docs/_static/no-icon.png) means not supported.
-
-The ESP-IDF master branch is marked as not supported because the major feature changes it has introduced may cause conflicts with ESP-ADF. Yet, the ADF examples not affected by those feature changes can still run correctly on the IDF master branch.
-
-End of Life IDF branches are marked as not supported, such as ESP-IDF Release/v4.0. See [IDF Supported Periods](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/versions.html#support-periods) for details.
-
-
-|                       | ESP-IDF <br> Release/v3.3 | ESP-IDF <br> Release/v4.0| ESP-IDF <br> Release/v4.1| ESP-IDF <br> Release/v4.2| ESP-IDF <br> Release/v4.3| ESP-IDF <br> Release/v4.4 | ESP-IDF <br> Master |
-|:----------- |:---------------------: | :---------------------:| :---------------------:|:---------------------: | :---------------------:| :---------------------:| :---------------------:|
-| ESP-ADF <br> Master  |  ![alt text](docs/_static/yes-checkm.png "supported") | ![alt text](docs/_static/no-icon.png "not supported") |  ![alt text](docs/_static/yes-checkm.png "supported") | ![alt text](docs/_static/yes-checkm.png "supported") | ![alt text](docs/_static/yes-checkm.png "supported") | ![alt text](docs/_static/yes-checkm.png "supported") |![alt text](docs/_static/no-icon.png "not supported") |
-| ESP-ADF <br> Release/v2.4  | ![alt text](docs/_static/yes-checkm.png "supported") | ![alt text](docs/_static/no-icon.png "not supported")  | ![alt text](docs/_static/yes-checkm.png "supported") | ![alt text](docs/_static/yes-checkm.png "supported") | ![alt text](docs/_static/yes-checkm.png "supported") | ![alt text](docs/_static/yes-checkm.png "supported") <sup> **1** </sup> | ![alt text](docs/_static/no-icon.png "not supported")  |
-| ESP-ADF <br> Release/v2.3  | ![alt text](docs/_static/yes-checkm.png "supported") | ![alt text](docs/_static/no-icon.png "not supported")  | ![alt text](docs/_static/yes-checkm.png "supported") | ![alt text](docs/_static/yes-checkm.png "supported") | ![alt text](docs/_static/no-icon.png "not supported") | ![alt text](docs/_static/no-icon.png "not supported") |![alt text](docs/_static/no-icon.png "not supported") |
+해당 이슈는 esp-adf 에러로, esp-adf/components/bluetooth_service/CMakeLists.txt 의 7번째 줄 set(COMPONENT_SRCS ./bluetooth_service.c ./bt_keycontrol.c ./a2dp_stream.c ./hfp_stream.c) 를 주석 처리 하면 돌아갑니다.
 
 
-**Note 1:** The built-in IDF branch of ESP-ADF v2.4 is IDF Release/v4.4 at the current time.
+2.
+sound_manager.cpp 쪽에서 소리 나오는 부분에서, 작동을 조금 더 예측 가능하도록 하기 위해, i2s_stream 이 pause 되지 않도록 하게 해서 사용 중. esp-adf 의 i2s_stream.c 에서 304~306 번째 line 을 주석 처리.
+```
+if (state == AEL_STATE_RUNNING) {
+   audio_element_pause(i2s_stream);
+}
+```
 
+3.
+재생되는 소리들이 저장되는 파티션명을 spiffs 에서 sound 로 변경하면서, adf 코드에서 하드코딩 되어있는 것과 충돌이 있음. spiffs_stream.c 파일의 95번째 line을 변경하면 됨.
+```
+char *path = strstr(uri, "/spiffs");
+```
+를
+```
+char *path = uri;
+```
+로 변경
 
-### Quick Start
-
-You need one of ESP-IDF versions described in [ESP-ADF Releases](https://github.com/espressif/esp-adf/releases), one of audio boards below and headphones.
-
-**Note:**  If this is your first exposure to ESP-IDF, proceed to **Getting Started** documentation specific for [ESP32](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html), [ESP32-S2](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/get-started/index.html), or [ESP32-S3](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/index.html) SoCs.
-
-Click on one of audio boards shown below to set up and start using ESP-ADF.
-
-### Hardware
-
-Espressif Systems has released a number of boards for ESP-ADF to develop audio applications. Click the links below to learn more information on each board.
-
-It is recommended to use the ESP-ADF master branch, as it has the latest bugfixes and the new features.
-
-|                       | [ESP32-LyraT](https://docs.espressif.com/projects/esp-adf/en/latest/get-started/get-started-esp32-lyrat.html) | [ESP32-LyraTD-MSC](https://docs.espressif.com/projects/esp-adf/en/latest/get-started/get-started-esp32-lyratd-msc.html) | [ESP32-LyraT-Mini](https://docs.espressif.com/projects/esp-adf/en/latest/get-started/get-started-esp32-lyrat-mini.html) | [ESP32-Korvo-DU1906](https://docs.espressif.com/projects/esp-adf/en/latest/get-started/get-started-esp32-korvo-du1906.html) | [ESP32-S2-Kaluga-1 Kit](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/hw-reference/esp32s2/user-guide-esp32-s2-kaluga-1-kit.html)|[ESP32-S3-Korvo-2](https://docs.espressif.com/projects/esp-adf/en/latest/get-started/user-guide-esp32-s3-korvo-2.html)|
-|:----------- |:---------------------: | :---------------------:| :---------------------:|:---------------------: | :---------------------:| :---------------------:|
-|  |  [<img src="docs/_static/esp32-lyrat-v4.2-side.jpg" width="120" alt ="ESP32-LyraT Development Board" align="center" />](https://docs.espressif.com/projects/esp-adf/en/latest/get-started/get-started-esp32-lyrat.html)  |  [<img src="docs/_static/esp32-lyratd-msc-v2.2.jpg" width="120" alt ="ESP32-LyraTD-MSC Development Board" align="center" />](https://docs.espressif.com/projects/esp-adf/en/latest/get-started/get-started-esp32-lyratd-msc.html)  |  [<img src="docs/_static/esp32-lyrat-mini-v1.2.png" width="110" alt ="ESP32-LyraT-Mini Development Board" align="center" />](https://docs.espressif.com/projects/esp-adf/en/latest/get-started/get-started-esp32-lyrat-mini.html)  |  [<img src="docs/_static/esp32-korvo-du1906-v1.1.png" width="110" alt ="ESP32-Korvo-DU1906 Development Board" align="center" />](https://docs.espressif.com/projects/esp-adf/en/latest/get-started/get-started-esp32-korvo-du1906.html)  |  [<img src="docs/_static/esp32-s2-kaluga-1-kit.png" width="100" alt ="ESP32-LyraT-Mini Development Board" align="center" />](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/hw-reference/esp32s2/user-guide-esp32-s2-kaluga-1-kit.html) |  [<img src="docs/_static/esp32-s3-korvo-2-v3.0-overview.png" width="120" alt ="ESP32-S3-Korvo-2 Development Board" align="center" />](https://docs.espressif.com/projects/esp-adf/en/latest/get-started/user-guide-esp32-s3-korvo-2.html) |
-| ESP-ADF Master        | ![alt text](docs/_static/yes-checkm.png) | ![alt text](docs/_static/yes-checkm.png)   | ![alt text](docs/_static/yes-checkm.png) | ![alt text](docs/_static/yes-checkm.png) | ![alt text](docs/_static/yes-checkm.png) | ![alt text](docs/_static/yes-checkm.png) |
-| ESP-ADF Release/v2.4  | ![alt text](docs/_static/yes-checkm.png) | ![alt text](docs/_static/yes-checkm.png)   | ![alt text](docs/_static/yes-checkm.png) | ![alt text](docs/_static/yes-checkm.png) | ![alt text](docs/_static/yes-checkm.png) | ![alt text](docs/_static/yes-checkm.png) |
-| ESP-ADF Release/v2.3  | ![alt text](docs/_static/yes-checkm.png) | ![alt text](docs/_static/yes-checkm.png)   | ![alt text](docs/_static/yes-checkm.png) | ![alt text](docs/_static/yes-checkm.png) | ![alt text](docs/_static/yes-checkm.png) | ![alt text](docs/_static/no-icon.png "not supported") |
-
-[supported]: https://img.shields.io/badge/-supported-green "supported"
-[not supported]: https://img.shields.io/badge/-not%20supported-orange "not supported"
-
-
-
-#### Examples
-
-Check folder [examples](examples) that contains sample applications to demonstrate API features of the ESP-ADF.
-
-# Resources
-
-* [Documentation](https://docs.espressif.com/projects/esp-adf/en/latest/index.html) for the latest version of https://docs.espressif.com/projects/esp-adf/. This documentation is built from the [docs directory](docs) of this repository.
-* The [esp32.com forum](https://esp32.com/) is a place to ask questions and find community resources. On the forum there is a [section dedicated to ESP-ADF](https://esp32.com/viewforum.php?f=20) users.
-* [Check the Issues section on github](https://github.com/espressif/esp-adf/issues) if you find a bug or have a feature request. Please check existing Issues before opening a new one.
-* If you're interested in contributing to ESP-ADF, please check the [Contributions Guide](https://esp-idf.readthedocs.io/en/latest/contribute/index.html).
+4.
+adf의 수정을 통해 i2s dac의 설정을 한번만 진행하도록 수정. adf를 변경하지 않아도 작동은 하지만, 불안정한 작동의 원인이 될 수 있음. esp-adf/components/audio_stream/i2s_stream.c 의 393번째 줄
+```
+i2s_set_dac_mode(I2S_DAC_CHANNEL_BOTH_EN);
+```
+를
+```
+i2s_set_dac_mode(I2S_DAC_CHANNEL_RIGHT_EN);
+```
+로 변경
