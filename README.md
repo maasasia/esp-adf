@@ -4,18 +4,14 @@ original document is here. https://github.com/espressif/esp-adf
 ## Install guide
 1. Clone this repository
 ```
-git clone --recursive git@github.com:maasasia/esp-adf.git
+git clone -b v2.4-modify1 --recursive git@github.com:maasasia/esp-adf.git
 ```
-2. checkout to 2.4-modify version
-```
-git checkout v2.4-modify
-```
-3. Set the $ESP_ADF path
+2. Set the $ESP_ADF path
 ```
 cd esp-adf
 export ADF_PATH=$PWD
 ```
-4. Process submodule
+3. Process submodule
 ```
 git submodule update --init --recursive
 ```
